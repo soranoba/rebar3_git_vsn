@@ -1,12 +1,14 @@
 rebar3_git_vsn
 ======
+[![hex.pm version](https://img.shields.io/hexpm/v/rebar3_git_vsn.svg)](https://hex.pm/packages/rebar3_git_vsn)
+
 Provider for generate the version from git.
 
 It is a plugin for [rebar3](https://github.com/erlang/rebar3)
 
 ## Overview
-When we use the `{vsn, git}`, it can be generated to automatically version from git hash.
-However, it does not mean use at any time.
+When we use the `{vsn, git}`, it can be generated to automatically version from git hash.  
+However, it does not mean use at any time.  
 For example, if you want to publish to [hex](https://hex.pm), it is not a recommended way.
 
 This plugin works as follows:
