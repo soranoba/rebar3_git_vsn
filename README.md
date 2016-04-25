@@ -28,10 +28,12 @@ This will help in providing functions such as `my_escript --version`.
 
 {git_vsn,
  [
-  %% Write the git vsn to Key of .app.src (default: git_vsn)
-  {key, git_vsn},
+  %% Where to write the git vsn. (default: git_vsn)
+  %%
+  %% application:get_env(Application, EnvKey)
+  {env_key, git_vsn},
 
-  %% git describe option. https://git-scm.com/docs/git-describe (default: "")
+  %% Git describe option. https://git-scm.com/docs/git-describe (default: "")
   {describe_opt, "--tags --long"}
  ]}.
 ```

@@ -37,7 +37,7 @@ do(State) ->
     CurrentApp  = rebar_state:current_app(State),
     ProjectApps = rebar_state:project_apps(State),
     GitVsnOpts  = rebar_state:get(State, git_vsn, []),
-    Key = proplists:get_value(key, GitVsnOpts, git_vsn),
+    Key = proplists:get_value(env_key, GitVsnOpts, git_vsn),
     Opt = proplists:get_value(describe_opt, GitVsnOpts, ""),
     Dir = rebar_app_info:dir(CurrentApp),
 
@@ -50,7 +50,9 @@ do(State) ->
                                   ?INFO("write ~s.app : {~p, ~p}", [rebar_app_info:name(App), Key, Vsn]),
                                   AppFile = rebar_app_info:app_file(App),
                                   {ok, [{application, AppName, AppKeys0}]} = file:consult(AppFile),
-                                  AppKeys = [{Key, Vsn} | proplists:delete(Key, AppKeys0)],
+                                  Env0 = proplists:get_value(env, AppKeys0),
+                                  Env     = lists:keystore(Key, 1, Env0, {Key, Vsn}),
+                                  AppKeys = lists:keystore(env, 1, AppKeys0, {env, Env}),
                                   AppData = io_lib:format("~p.\n", [{application, AppName, AppKeys}]),
                                   rebar_file_utils:write_file_if_contents_differ(AppFile, AppData)
                           end, [CurrentApp | ProjectApps]);
