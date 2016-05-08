@@ -44,7 +44,7 @@ do(State) ->
     case filelib:is_dir(GitPath = filename:join(Dir, ".git")) of
         true ->
             {ok, Ret} = rebar_utils:sh("git describe --always " ++ Opt, [{cd, Dir}]),
-            [Vsn | _] = string:tokens(Ret, "\n"),
+            Vsn = string:strip(Ret, both, $\n),
 
             lists:foreach(fun(App) ->
                                   ?INFO("write ~s.app : {~p, ~p}", [rebar_app_info:name(App), Key, Vsn]),
