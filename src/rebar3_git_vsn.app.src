@@ -1,11 +1,11 @@
-{application, rebar3_git_vsn,
- [{description, "Provider for generate the version from git."},
-  {vsn, "1.0.0"},
-  {registered, []},
-  {applications,[kernel,stdlib]},
-  {modules, []},
-  {maintainers, ["Hinagiku Soranoba"]},
-  {licenses, ["MIT"]},
-  {links, [{"GitHub","https://github.com/soranoba/rebar3_git_vsn"}]},
-  {env,[]}
- ]}.
+{application,rebar3_git_vsn,
+             [{description,"Provider for generate the version from git."},
+              {vsn,"1.1.0"},
+              {registered,[]},
+              {applications,[kernel,stdlib]},
+              {modules,[]},
+              {maintainers,["Hinagiku Soranoba"]},
+              {licenses,["MIT"]},
+              {links,[{"GitHub",
+                       "https://github.com/soranoba/rebar3_git_vsn"}]},
+              {env,[]}]}.
