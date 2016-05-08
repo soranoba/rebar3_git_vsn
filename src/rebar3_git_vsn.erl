@@ -37,14 +37,21 @@ do(State) ->
     CurrentApp  = rebar_state:current_app(State),
     ProjectApps = rebar_state:project_apps(State),
     GitVsnOpts  = rebar_state:get(State, git_vsn, []),
-    Key = proplists:get_value(env_key, GitVsnOpts, git_vsn),
-    Opt = proplists:get_value(describe_opt, GitVsnOpts, ""),
+    Key         = proplists:get_value(env_key, GitVsnOpts, git_vsn),
+    Opt         = proplists:get_value(describe_opt, GitVsnOpts, ""),
+    DoSeparate  = proplists:get_value(separate, GitVsnOpts, false),
     Dir = rebar_app_info:dir(CurrentApp),
 
     case filelib:is_dir(GitPath = filename:join(Dir, ".git")) of
         true ->
-            {ok, Ret} = rebar_utils:sh("git describe --always " ++ Opt, [{cd, Dir}]),
-            Vsn = string:strip(Ret, both, $\n),
+            Vsn0 = git_describe(Dir, Opt),
+            Vsn  = case DoSeparate andalso lists:prefix(git_describe(Dir, "--tags --long --abbrev=1"), Vsn0) of
+                       true ->
+                           [Hash, Count | Rest] = lists:reverse(string:tokens(Vsn0, [$-])),
+                           {string:join(lists:reverse(Rest), "-"), Count, Hash};
+                       false ->
+                           Vsn0
+                   end,
 
             lists:foreach(fun(App) ->
                                   ?INFO("write ~s.app : {~p, ~p}", [rebar_app_info:name(App), Key, Vsn]),
@@ -69,3 +76,8 @@ format_error(Reason) ->
 %%----------------------------------------------------------------------------------------------------------------------
 %% Internal Functions
 %%----------------------------------------------------------------------------------------------------------------------
+
+-spec git_describe(file:filename_all(), string()) -> string().
+git_describe(Dir, Opt) ->
+    {ok, Ret} = rebar_utils:sh("git describe --always " ++ Opt, [{cd, Dir}]),
+    string:strip(Ret, both, $\n).
