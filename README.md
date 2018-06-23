@@ -1,5 +1,6 @@
 rebar3_git_vsn
 ======
+[![Build Status](https://travis-ci.org/soranoba/rebar3_git_vsn.svg?branch=master)](https://travis-ci.org/soranoba/rebar3_git_vsn)
 [![hex.pm version](https://img.shields.io/hexpm/v/rebar3_git_vsn.svg)](https://hex.pm/packages/rebar3_git_vsn)
 
 Provider for generate the version from git.
@@ -8,11 +9,11 @@ It is a plugin for [rebar3](https://github.com/erlang/rebar3)
 
 ## Overview
 When we use the `{vsn, git}`, it can be generated to automatically version from git hash.  
-However, it does not mean use at any time.  
+However, it does not mean able to use at any time.  
 For example, if you want to publish to [hex](https://hex.pm), it is not a recommended way.
 
-If your library include escripts and does not use `{vsn, git}`, this plugin would be useful in order to return the correct version.
-
+If your library include escripts and does not use `{vsn, git}`, this plugin would be useful in order to return the correct version.  
+For example, it is used in [erlup](https://github.com/soranoba/erlup).
 
 This plugin works as follows:
 
