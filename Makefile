@@ -1,6 +1,6 @@
 
 .PHONY: test
-all: compile test xref dialyze edoc
+all: compile sample_dearchive test xref dialyze edoc
 
 compile:
 	@./rebar3 as dev compile
@@ -22,3 +22,9 @@ start:
 
 dialyze:
 	@./rebar3 as test dialyzer
+
+sample_archive:
+	tar -zcvf sample/spam.tar.gz sample/spam_*
+
+sample_dearchive:
+	tar -zxvf sample/spam.tar.gz -C sample/.
