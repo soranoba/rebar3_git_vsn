@@ -1,6 +1,6 @@
 {application,rebar3_git_vsn,
              [{description,"Provider for generate the version from git."},
-              {vsn,"1.1.0"},
+              {vsn,"1.1.1"},
               {registered,[]},
               {applications,[kernel,stdlib]},
               {modules,[]},
