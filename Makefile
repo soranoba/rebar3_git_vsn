@@ -1,6 +1,6 @@
 
-.PHONY: ct
-all: compile eunit xref dialyze edoc
+.PHONY: test
+all: compile test xref dialyze edoc
 
 compile:
 	@./rebar3 as dev compile
@@ -11,14 +11,8 @@ xref:
 clean:
 	@./rebar3 clean
 
-ct:
-	@./rebar3 as test ct
-
-cover:
-	@./rebar3 as test cover
-
-eunit:
-	@./rebar3 as test eunit
+test:
+	bash test/tests.bash
 
 edoc:
 	@./rebar3 as dev edoc
