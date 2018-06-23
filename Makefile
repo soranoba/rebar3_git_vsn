@@ -1,24 +1,18 @@
 
-.PHONY: ct
-all: compile eunit ct xref dialyze edoc
+.PHONY: test
+all: compile sample_dearchive test xref dialyze edoc
 
 compile:
 	@./rebar3 as dev compile
 
 xref:
-	@./rebar3 xref
+	@./rebar3 as test xref
 
 clean:
 	@./rebar3 clean
 
-ct:
-	@./rebar3 ct
-
-cover:
-	@./rebar3 cover
-
-eunit:
-	@./rebar3 eunit
+test:
+	bash test/tests.bash
 
 edoc:
 	@./rebar3 as dev edoc
@@ -27,4 +21,10 @@ start:
 	@./rebar3 as dev shell
 
 dialyze:
-	@./rebar3 dialyzer
+	@./rebar3 as test dialyzer
+
+sample_archive:
+	tar -zcvf sample/spam.tar.gz sample/spam_*
+
+sample_dearchive:
+	tar -zxvf sample/spam.tar.gz -C sample/.

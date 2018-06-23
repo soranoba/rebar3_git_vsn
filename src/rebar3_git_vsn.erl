@@ -45,12 +45,9 @@ do(State) ->
     case filelib:is_dir(GitPath = filename:join(Dir, ".git")) of
         true ->
             Vsn0 = git_describe(Dir, Opt),
-            Vsn  = case DoSeparate andalso lists:prefix(git_describe(Dir, "--tags --long --abbrev=1"), Vsn0) of
-                       true ->
-                           [Hash, Count | Rest] = lists:reverse(string:tokens(Vsn0, [$-])),
-                           {string:join(lists:reverse(Rest), "-"), Count, Hash};
-                       false ->
-                           Vsn0
+            Vsn  = case DoSeparate andalso list_to_tuple(string:tokens(Vsn0, [$-])) of
+                       {_, _, _} = Tuple -> Tuple;
+                       _                 -> Vsn0
                    end,
 
             lists:foreach(fun(App) ->
