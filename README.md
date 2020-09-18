@@ -1,6 +1,6 @@
 rebar3_git_vsn
 ======
-[![Build Status](https://travis-ci.org/soranoba/rebar3_git_vsn.svg?branch=master)](https://travis-ci.org/soranoba/rebar3_git_vsn)
+[![Build Status](https://travis-ci.com/soranoba/rebar3_git_vsn.svg?branch=master)](https://travis-ci.com/soranoba/rebar3_git_vsn)
 [![hex.pm version](https://img.shields.io/hexpm/v/rebar3_git_vsn.svg)](https://hex.pm/packages/rebar3_git_vsn)
 
 Provider for generate the version from git.
