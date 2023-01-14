@@ -1,11 +1,12 @@
 #!/usr/bin/env escript
 %% -*- erlang -*-
 
-main([AppFilePath]) ->
+main([AppFilePath | Tail]) ->
+    Key = if Tail == ["vsn"] -> vsn; true -> env end,
     case file:consult(AppFilePath) of
         {ok, ConsultResult} ->
             {_, _, AllEnvs} = proplists:lookup(application, ConsultResult),
-            io:format("~p~n", [proplists:get_value(env, AllEnvs)]);
+            io:format("~p~n", [proplists:get_value(Key, AllEnvs)]);
         {error, Reason} ->
             io:format("file:consult(~p) failed. reason = ~p~n", [AppFilePath, Reason]),
             halt(1)
