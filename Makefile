@@ -1,30 +1,36 @@
+REBAR=$(shell which rebar3)
 
 .PHONY: test
-all: compile sample_dearchive test xref dialyze edoc
+all: compile sample-restore test-bash edoc
 
 compile:
-	@./rebar3 as dev compile
+	@$(REBAR) compile
 
 xref:
-	@./rebar3 as test xref
+	@$(REBAR) xref
 
 clean:
-	@./rebar3 clean
+	@$(REBAR) clean
+	@rm -fr sample/spam_*/{.git,_build}
 
-test:
+test-bash: test
 	bash test/tests.bash
 
+test:
+	@$(REBAR) test
+
 edoc:
-	@./rebar3 as dev edoc
+	@$(REBAR) edoc
 
 start:
-	@./rebar3 as dev shell
+	@$(REBAR) shell
 
 dialyze:
-	@./rebar3 as test dialyzer
+	@$(REBAR) dialyzer
 
-sample_archive:
+sample-archive:
+	@rm -fr sample/spam_*/{_build,.git}
 	tar -zcvf sample/spam.tar.gz sample/spam_*
 
-sample_dearchive:
-	tar -zxvf sample/spam.tar.gz -C sample/.
+sample-restore:
+	@tar -zxf sample/spam.tar.gz && echo "sample/spam_* restored"

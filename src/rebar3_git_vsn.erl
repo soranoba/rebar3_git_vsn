@@ -22,6 +22,9 @@
 %% 'provider' Callback Functions
 %%----------------------------------------------------------------------------------------------------------------------
 
+-dialyzer(no_undefined_callbacks).
+-ignore_xref([rebar_api, rebar_app_info, providers, rebar_state]).
+
 %% @private
 init(State) ->
     Provider = providers:create([{name, git_vsn},
@@ -38,28 +41,76 @@ do(State) ->
     ProjectApps = rebar_state:project_apps(State),
     GitVsnOpts  = rebar_state:get(State, git_vsn, []),
     Key         = proplists:get_value(env_key, GitVsnOpts, git_vsn),
-    Opt         = proplists:get_value(describe_opt, GitVsnOpts, ""),
+    VsnFmt      = proplists:get_value(vsn_format, GitVsnOpts, ignore),
+    DefGitOpts  = if VsnFmt == gitver ->
+                       "--abbrev=7 --tags";
+                  true ->
+                       "--abbrev=7 --tags --long"
+                  end,
+    Opt         = proplists:get_value(describe_opt, GitVsnOpts, DefGitOpts),
     DoSeparate  = proplists:get_value(separate, GitVsnOpts, false),
-    Dir = rebar_app_info:dir(CurrentApp),
+    Dir         = rebar_app_info:dir(CurrentApp),
 
     case filelib:is_dir(GitPath = filename:join(Dir, ".git")) of
         true ->
             Vsn0 = git_describe(Dir, Opt),
-            Vsn  = case DoSeparate andalso list_to_tuple(string:tokens(Vsn0, [$-])) of
+            Vsn1 = case VsnFmt of
+                      gitver ->
+                          re:replace(Vsn0, "(-\\d+)-g", "\\1-", [{return,list}]);
+                      ggitver ->
+                          Vsn0;
+                      ignore ->
+                          Vsn0;
+                      _ ->
+                          ?ERROR("Invalid vsn_format argument of ~w plugin: ~p", [VsnFmt, ?MODULE]),
+                          erlang:error({invalid_argument, {?MODULE, vsn_format, VsnFmt}})
+                   end,
+            Vsn  = case DoSeparate andalso list_to_tuple(string:tokens(Vsn1, [$-])) of
                        {_, _, _} = Tuple -> Tuple;
-                       _                 -> Vsn0
+                       _                 -> Vsn1
                    end,
 
-            lists:foreach(fun(App) ->
-                                  ?INFO("write ~s.app : {~p, ~p}", [rebar_app_info:name(App), Key, Vsn]),
-                                  AppFile = rebar_app_info:app_file(App),
-                                  {ok, [{application, AppName, AppKeys0}]} = file:consult(AppFile),
-                                  Env0 = proplists:get_value(env, AppKeys0),
-                                  Env     = lists:keystore(Key, 1, Env0, {Key, Vsn}),
-                                  AppKeys = lists:keystore(env, 1, AppKeys0, {env, Env}),
-                                  AppData = io_lib:format("~p.\n", [{application, AppName, AppKeys}]),
-                                  rebar_file_utils:write_file_if_contents_differ(AppFile, AppData)
-                          end, [CurrentApp | ProjectApps]);
+            _ = lists:foldl(
+                fun(App, Acc) ->
+                    AppNameBin = rebar_app_info:name(App),
+                    AppFile    = rebar_app_info:app_file(App),
+                    case lists:member(AppNameBin, Acc) of
+                        true ->
+                            Acc;
+                        false ->
+                            {AppName, AppKeys0} =
+                                case file:consult(AppFile) of
+                                    {ok, [{application, AppN, AppK}]} ->
+                                        {AppN, AppK};
+                                    {error, Why} ->
+                                        ?ERROR("Cannot read ~p: ~p\nAppFile: ~p", [AppFile, Why, App]),
+                                        erlang:error({cannot_read_app_file, AppFile, Why})
+                                end,
+                            Env0    = proplists:get_value(env, AppKeys0),
+                            AppKey1 = if Key == ignore ->
+                                          AppKeys0;
+                                      not is_list(Env0) ->
+                                          ?ERROR("~w: missing 'env' key in ~p.\n"
+                                                 "Add `{git_vsn, [{env_key, ignore}]}.` option to rebar.config to ignore",
+                                                 [?MODULE, AppFile]),
+                                          erlang:error({missing_env_key, AppFile});
+                                      true ->
+                                          Env = lists:keystore(Key, 1, Env0, {Key, Vsn}),
+                                          lists:keystore(env, 1, AppKeys0, {env, Env})
+                                      end,
+                            AppKey2 = if VsnFmt == ignore ->
+                                          AppKey1;
+                                      true ->
+                                          lists:keystore(vsn, 1, AppKey1, {vsn, Vsn})
+                                      end,
+                            AppData = iolist_to_binary(io_lib:format("~p.\n", [{application, AppName, AppKey2}])),
+                            ?INFO("Writing ~s.app vsn=~p", [AppName, Vsn]),
+                            ?DEBUG("AppFile: ~p, vsn_format=~p", [AppFile, VsnFmt]),
+                            rebar_file_utils:write_file_if_contents_differ(AppFile, AppData),
+                            [AppNameBin | Acc]
+                    end
+                end, [], [CurrentApp | ProjectApps]),
+            ok;
         false ->
             ?DEBUG("~s doesn't exist", [GitPath]),
             ok
